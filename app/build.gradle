@@ -18,6 +18,11 @@ android {
     }
 }
 
+repositories {
+    //引用时，若还未添加到Jcenter成功时，可配置私有仓库地址使用
+    maven { url 'https://dl.bintray.com/guanggg/maven' }
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.0.0-beta01'
@@ -26,4 +31,5 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0-alpha4'
 
     implementation project(':reader')
+    //implementation 'gapp.season:bookreader:1.0.0'
 }

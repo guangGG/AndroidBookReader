@@ -4,11 +4,10 @@ buildscript {
     repositories {
         google()
         jcenter()
-        
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.3.1'
-        
+        classpath 'com.novoda:bintray-release:0.9' //这里配置bintray插件的依赖(请使用最新版本)
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -18,7 +17,15 @@ allprojects {
     repositories {
         google()
         jcenter()
-        
+    }
+    //设置生成doc编码，解决报错：mavenAndroidJavadocs
+    tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+        options {
+            encoding "UTF-8"
+            charSet 'UTF-8'
+            links "http://docs.oracle.com/javase/7/docs/api"
+        }
     }
 }
 
