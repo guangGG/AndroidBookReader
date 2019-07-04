@@ -289,6 +289,36 @@ public class BrUtil {
         return builder.toString();
     }
 
+    public static boolean deleteFile(File file) {
+        if (file == null || !file.exists()) {
+            // 文件(夹)不存在，直接返回
+            return false;
+        }
+        if (!file.isDirectory()) {
+            // 文件(夹)不是目录，直接删除
+            if (!file.delete()) {
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            boolean rst = true;
+            File[] files = file.listFiles();
+            if (files != null) {
+                for (File f : files) {
+                    if (!deleteFile(f)) {
+                        rst = false;
+                    }
+                }
+            }
+            if (!file.delete()) {
+                rst = false;
+            } else {
+            }
+            return rst;
+        }
+    }
+
     public static String getMd5Hash(String str) {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");

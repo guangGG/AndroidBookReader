@@ -30,8 +30,8 @@ public class BookPageView extends View {
     public BookPageView(final Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         mGestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
-            private final int FLING_MIN_DISTANCE = 80; //px
-            private final int FLING_MIN_VELOCITY = 120; // px/s
+            private final int FLING_MIN_DISTANCE = 60; //px
+            private final int FLING_MIN_VELOCITY = 90; // px/s
 
             @Override
             public boolean onDown(MotionEvent e) {

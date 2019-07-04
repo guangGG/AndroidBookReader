@@ -21,7 +21,7 @@ public class BookMarkMgr {
     private static String mPath; //书籍文件路径
     private static List<BookMark> mBookMarks;
 
-    private static String getBookMarkDir() {
+    public static String getBookMarkDir() {
         return BookReader.getBookDir() + "/marks";
     }
 

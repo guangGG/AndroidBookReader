@@ -97,6 +97,15 @@ public class BookRackMgr {
     public static void clearBook() {
         mRackBooks = new ArrayList<>();
         saveRackBooks();
+        //清空书签和缓存Book
+        try {
+            File f1 = new File(BookMarkMgr.getBookMarkDir());
+            File f2 = new File(BookLoader.getCacheBookDir());
+            BrUtil.deleteFile(f1);
+            BrUtil.deleteFile(f2);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static RackBook getNonNullRackBook(String bookPath, Book book) {
