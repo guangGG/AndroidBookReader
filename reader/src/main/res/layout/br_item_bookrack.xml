@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/br_white"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:id="@+id/br_text_rack_tips"
+        android:layout_width="match_parent"
+        android:layout_height="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="5dp"
+            android:singleLine="true"
+            android:text="@string/br_book"
+            android:textColor="@color/br_color_999"
+            android:textSize="12sp" />
+
+        <ImageView
+            android:id="@+id/br_text_rack_cm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:contentDescription="@string/br_app_name"
+            android:src="@android:drawable/ic_menu_view" />
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/br_text_rack"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="3"
+        android:padding="3dp"
+        android:textColor="@color/br_color_333"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/br_text_rack_remove"
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:gravity="center"
+        android:text="@string/br_remove_book"
+        android:textColor="@color/br_blue"
+        android:textSize="12sp" />
+</LinearLayout>
