@@ -16,6 +16,7 @@ public class BookReader {
     private static boolean sIsDev; //开发模式会打印一些日志
     private static int sPageTheme; //页面样式
     private static String sBookDir; //Book文件保存的文件夹位置
+    private static BrListener mBrListener;
 
     public static void config(boolean isdev, int pageTheme, String bookDir) {
         sIsDev = isdev;
@@ -23,6 +24,10 @@ public class BookReader {
         if (!TextUtils.isEmpty(bookDir)) {
             sBookDir = bookDir + BOOK_READER_DIR;
         }
+    }
+
+    public static void setBrListener(BrListener brListener) {
+        mBrListener = brListener;
     }
 
     public static boolean isDev() {
@@ -48,6 +53,10 @@ public class BookReader {
                 .getAbsolutePath() + BOOK_READER_DIR) : sBookDir;
     }
 
+    public static BrListener getBrListener() {
+        return mBrListener;
+    }
+
     public static void readBook(Context context, String bookFilePath) {
         Intent intent = new Intent(context, BookReaderActivity.class);
         intent.putExtra(BrUtil.KEY_BOOK_PATH, bookFilePath);
@@ -55,5 +64,13 @@ public class BookReader {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         }
         context.startActivity(intent);
+    }
+
+    public interface BrListener {
+        //自定义方式导入书籍
+        void importBook(Activity activity, int requestCode);
+
+        //自定义方式导入书籍
+        String onImportBook(Activity activity, Intent data);
     }
 }

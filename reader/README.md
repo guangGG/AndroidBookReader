@@ -12,6 +12,7 @@
 ```
     先将SDK的aar包导入工程；(打aar包：执行AS的Gradle工具中找到对应Module-Tasks-build-assembleRelease命令)
     Application的onCreate方法中初始化一些配置项： BookReader.config(isdev, pageTheme, bookDir); (可选)
+    自定义文件导入方式：BookReader.setBrListener(BrListener); (可选)
     阅读书籍：BookReader.readBook(context, bookFilePath); (bookFilePath允许传空)
 ```
 

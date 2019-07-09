@@ -1,9 +1,6 @@
 package gapp.season.reader.util;
 
 import android.content.Context;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Environment;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.WindowManager;
@@ -245,48 +242,6 @@ public class BrUtil {
 
     public static boolean equals(Object a, Object b) {
         return (a == b) || (a != null && a.equals(b));
-    }
-
-    public static String getContentFromUri(Context context, Uri uri) {
-        if (uri == null) {
-            return null;
-        }
-        StringBuilder builder = new StringBuilder();
-        InputStream reader = null;
-        try {
-            try {
-                reader = context.getContentResolver().openInputStream(uri);
-            } catch (Exception e) {
-                e.printStackTrace();
-                // fix: opening provider android.support.v4.content.FileProvider from ProcessRecord
-                String path = uri.getPath();
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
-                        && path != null && path.startsWith("/external")) {
-                    reader = new FileInputStream(Environment.getExternalStorageDirectory().getAbsolutePath()
-                            + path.replace("/external", ""));
-                }
-            }
-            if (reader == null) {
-                return null;
-            }
-            byte[] buffer = new byte[reader.available()];
-            while ((reader.read(buffer)) != -1) {
-                builder.append(new String(buffer));
-            }
-            reader.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return builder.toString();
     }
 
     public static boolean deleteFile(File file) {

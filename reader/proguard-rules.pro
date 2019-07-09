@@ -21,3 +21,4 @@
 #-renamesourcefileattribute SourceFile
 
 -keep class gapp.season.reader.BookReader {*;}
+-keep interface gapp.season.reader.BookReader$BrListener {*;}

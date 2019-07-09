@@ -37,6 +37,7 @@ import gapp.season.reader.model.Book;
 import gapp.season.reader.model.BookPageLine;
 import gapp.season.reader.model.BookSchedule;
 import gapp.season.reader.util.BrClipboardUtil;
+import gapp.season.reader.util.BrFileUtil;
 import gapp.season.reader.util.BrLog;
 import gapp.season.reader.util.BrTaskListener;
 import gapp.season.reader.util.BrUtil;
@@ -406,10 +407,14 @@ public class BookReaderActivity extends Activity {
 
     public void importBook() {
         try {
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("text/*");
-            intent.addCategory(Intent.CATEGORY_OPENABLE);
-            startActivityForResult(intent, REQUEST_CODE_IMPORT_BOOK);
+            if (BookReader.getBrListener() != null) {
+                BookReader.getBrListener().importBook(this, REQUEST_CODE_IMPORT_BOOK);
+            } else {
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("text/*");
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                startActivityForResult(intent, REQUEST_CODE_IMPORT_BOOK);
+            }
         } catch (ActivityNotFoundException e) {
             e.printStackTrace();
             Toast.makeText(getApplicationContext(), R.string.br_no_import_app, Toast.LENGTH_LONG).show();
@@ -420,11 +425,21 @@ public class BookReaderActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE_IMPORT_BOOK) {
-            if (resultCode == RESULT_OK && data != null && data.getData() != null) {
-                String path = data.getData().getPath();
-                BrLog.i(BookReader.TAG, "import book path = " + path);
-                if (path != null && path.startsWith("/")) {
-                    initData(path);
+            if (resultCode == RESULT_OK && data != null) {
+                if (BookReader.getBrListener() != null) {
+                    String path = BookReader.getBrListener().onImportBook(this, data);
+                    BrLog.i(BookReader.TAG, "onImportBook path = " + path);
+                    if (path != null && path.startsWith("/")) {
+                        initData(path);
+                    }
+                } else {
+                    if (data.getData() != null) {
+                        String path = BrFileUtil.getPath(this, data.getData()); //data.getData().getPath() maybe /external_files/a.txt
+                        BrLog.i(BookReader.TAG, "import book path = " + path);
+                        if (path != null && path.startsWith("/")) {
+                            initData(path);
+                        }
+                    }
                 }
             }
         }
