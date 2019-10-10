@@ -13,7 +13,7 @@ buildscript {
 2.Add the dependency
 ```
 dependencies {
-    implementation 'gapp.season:bookreader:1.0.1'
+    implementation 'gapp.season:bookreader:1.0.2'
 }
 ```
 

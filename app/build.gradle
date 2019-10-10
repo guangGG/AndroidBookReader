@@ -31,5 +31,5 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0-alpha4'
 
     //implementation project(':reader')
-    implementation 'gapp.season:bookreader:1.0.0'
+    implementation 'gapp.season:bookreader:1.0.2'
 }

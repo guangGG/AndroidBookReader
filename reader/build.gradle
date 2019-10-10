@@ -41,7 +41,7 @@ publish {
     userOrg = 'guanggg'
     groupId = 'gapp.season'
     artifactId = 'bookreader'
-    publishVersion = '1.0.1'
+    publishVersion = '1.0.2'
     desc = 'A simple book reader plug-in'
     website = 'https://github.com/guangGG/AndroidBookReader'
 }
