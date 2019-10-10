@@ -68,6 +68,20 @@ public class BookMarkMgr {
         return -1;
     }
 
+    public static void removeBookMark(String bookPath, BookMark bookMark) {
+        if (TextUtils.equals(mPath, bookPath) && mBookMarks != null && bookMark != null) {
+            mBookMarks.remove(bookMark);
+            saveBookMarks();
+        }
+    }
+
+    public static void clearBookMark(String bookPath) {
+        if (TextUtils.equals(mPath, bookPath) && mBookMarks != null) {
+            mBookMarks.clear();
+            saveBookMarks();
+        }
+    }
+
     private static boolean removeBookMarks(String bookPath, List<BookPageLine> pageLines) {
         boolean b = false;
         if (TextUtils.equals(mPath, bookPath)) {
@@ -148,8 +162,8 @@ public class BookMarkMgr {
     private static boolean isMarkInLine(BookPageLine line, BookMark bookMark) {
         if (bookMark != null && line != null && line.getLineId() == bookMark.getParagraphId()) {
             int start = line.getWordLineIndex();
-            int end = start + (line.getText() == null ? 0 : line.getText().length());
-            return bookMark.getWordLineIndex() >= start && bookMark.getWordLineIndex() < end;
+            int end = line.getWordLineLastIndex();
+            return bookMark.getWordLineIndex() >= start && bookMark.getWordLineIndex() <= end;
         }
         return false;
     }

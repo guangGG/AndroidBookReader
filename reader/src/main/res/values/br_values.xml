@@ -50,6 +50,10 @@
     <string name="br_bookmark_bm">书签</string>
     <string name="br_bookmark_ct">目录</string>
     <string name="br_chapter_num">(%d)</string>
+    <string name="br_clear_bookmark_tips">您确定要清空书签列表吗？</string>
+    <string name="br_remove_bookmark_tips">您确定要移除此条书签吗？</string>
+    <string name="br_search_hint">请输入要搜索的关键词</string>
+    <string name="br_search_result_tips">共搜索到%d条结果</string>
 
     <color name="br_transparent">#00000000</color>
     <color name="br_white">#FFFFFF</color>

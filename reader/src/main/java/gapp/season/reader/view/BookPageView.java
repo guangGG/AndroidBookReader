@@ -9,9 +9,10 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
+import androidx.annotation.Nullable;
+
 import java.util.List;
 
-import androidx.annotation.Nullable;
 import gapp.season.reader.loader.BookMarkMgr;
 import gapp.season.reader.loader.LoaderConfig;
 import gapp.season.reader.model.BookPageLine;
@@ -138,7 +139,13 @@ public class BookPageView extends View {
             for (int i = 0; i < mPageLines.size(); i++) {
                 BookPageLine line = mPageLines.get(i);
                 if (line != null && line.getText() != null) {
-                    paint.setColor(BookMarkMgr.isMarkLine(line) ? 0xff0088ff : 0xff333333);
+                    boolean isMarkLine = BookMarkMgr.isMarkLine(line);
+                    if (isMarkLine) { //标签行背景标记
+                        paint.setColor(0x33dd4f42);
+                        float top = i * (ts + ls);
+                        canvas.drawRect(0, top, getWidth(), top + ts * 1.2f, paint);
+                    }
+                    paint.setColor(isMarkLine ? 0xff0088ff : 0xff333333);
                     canvas.drawText(line.getText(), 0, (i + 1) * (ts + ls) - ls, paint);
                 }
             }

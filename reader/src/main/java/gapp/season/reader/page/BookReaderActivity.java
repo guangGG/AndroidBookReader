@@ -4,15 +4,20 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ListView;
 import android.widget.RadioButton;
@@ -36,6 +41,7 @@ import gapp.season.reader.loader.LoaderConfig;
 import gapp.season.reader.model.Book;
 import gapp.season.reader.model.BookPageLine;
 import gapp.season.reader.model.BookSchedule;
+import gapp.season.reader.model.BookSearchItem;
 import gapp.season.reader.util.BrClipboardUtil;
 import gapp.season.reader.util.BrFileUtil;
 import gapp.season.reader.util.BrLog;
@@ -56,6 +62,7 @@ public class BookReaderActivity extends Activity {
     private View mProgressLayout;
     private View mSetLayout;
     private View mMarkLayout;
+    private View mSearchLayout;
     private SeekBar mSeekProgress;
     private RadioButton mCharsetU8;
     private RadioButton mCharsetGbk;
@@ -81,6 +88,8 @@ public class BookReaderActivity extends Activity {
     private BookMarkAdapter mMarkAdapter;
     private BookMarkAdapter mChapterAdapter;
     private boolean mInBookMark;
+    private BookSearchAdapter mSearchAdapter;
+    private EditText mSearchWordView;
 
     private String mBookPath;
     private Book mBook;
@@ -105,6 +114,7 @@ public class BookReaderActivity extends Activity {
         mProgressLayout = findViewById(R.id.br_progress_layout);
         mSetLayout = findViewById(R.id.br_set_layout);
         mMarkLayout = findViewById(R.id.br_mark_layout);
+        mSearchLayout = findViewById(R.id.br_search_layout);
         mSeekProgress = findViewById(R.id.br_seek_progress);
         mCharsetU8 = findViewById(R.id.br_rb_cs_u8);
         mCharsetGbk = findViewById(R.id.br_rb_cs_gbk);
@@ -212,12 +222,10 @@ public class BookReaderActivity extends Activity {
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-
             }
         });
         mMarkAdapter = new BookMarkAdapter(this);
@@ -233,6 +241,39 @@ public class BookReaderActivity extends Activity {
                 exitOptMode(null);
             }
         });
+        mMarkListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+                new AlertDialog.Builder(BookReaderActivity.this)
+                        .setMessage(R.string.br_remove_bookmark_tips)
+                        .setPositiveButton(R.string.br_ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                BookMarkMgr.BookMark bm = (BookMarkMgr.BookMark) mMarkAdapter.getItem(position);
+                                BookMarkMgr.removeBookMark(mBookPath, bm);
+                                updatePage(0);
+                                updateBookMarkList();
+                            }
+                        }).show();
+                return true;
+            }
+        });
+        findViewById(R.id.br_menu_bm).setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                new AlertDialog.Builder(BookReaderActivity.this)
+                        .setMessage(R.string.br_clear_bookmark_tips)
+                        .setPositiveButton(R.string.br_ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                BookMarkMgr.clearBookMark(mBookPath);
+                                updatePage(0);
+                                updateBookMarkList();
+                            }
+                        }).show();
+                return true;
+            }
+        });
         mChapterAdapter = new BookMarkAdapter(this);
         mChapterListView = findViewById(R.id.br_lv_chapters);
         mChapterListView.setAdapter(mChapterAdapter);
@@ -244,6 +285,32 @@ public class BookReaderActivity extends Activity {
                 mParagraphLine = 0;
                 updatePage(0);
                 exitOptMode(null);
+            }
+        });
+        mSearchAdapter = new BookSearchAdapter(this);
+        ListView searchView = findViewById(R.id.br_search_list);
+        searchView.setAdapter(mSearchAdapter);
+        searchView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                BookSearchItem item = (BookSearchItem) mSearchAdapter.getItem(position);
+                if (item.getSchedule() != null) {
+                    mParagraph = item.getSchedule().getParagraph();
+                    mParagraphLine = item.getSchedule().getParagraphLine();
+                }
+                updatePage(0);
+                exitOptMode(null);
+            }
+        });
+        mSearchWordView = findViewById(R.id.br_search_text);
+        mSearchWordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    search(null);
+                    return true;
+                }
+                return false;
             }
         });
 
@@ -280,7 +347,8 @@ public class BookReaderActivity extends Activity {
         if (mRackLayout.getVisibility() == View.VISIBLE
                 || mProgressLayout.getVisibility() == View.VISIBLE
                 || mSetLayout.getVisibility() == View.VISIBLE
-                || mMarkLayout.getVisibility() == View.VISIBLE) {
+                || mMarkLayout.getVisibility() == View.VISIBLE
+                || mSearchLayout.getVisibility() == View.VISIBLE) {
             exitOptMode(null);
             return;
         }
@@ -519,6 +587,12 @@ public class BookReaderActivity extends Activity {
         exitOptMode(null);
         mMarkLayout.setVisibility(View.VISIBLE);
         //更新章节列表
+        updateBookChapterList();
+        //更新书签列表
+        updateBookMarkList();
+    }
+
+    private void updateBookChapterList() {
         List<BookMarkMgr.BookMark> chapterMarks = new ArrayList<>();
         if (mBook != null && mBook.getLines() != null && mBook.getChapters() != null) {
             for (int cpid : mBook.getChapters()) {
@@ -534,7 +608,9 @@ public class BookReaderActivity extends Activity {
             }
         }
         mChapterAdapter.setBookMarks(chapterMarks);
-        //更新书签列表
+    }
+
+    private void updateBookMarkList() {
         List<BookMarkMgr.BookMark> bookMarks = new ArrayList<>();
         List<BookMarkMgr.BookMark> bms = BookMarkMgr.getBookMarks(mBookPath);
         if (bms != null) {
@@ -556,6 +632,8 @@ public class BookReaderActivity extends Activity {
         mProgressLayout.setVisibility(View.GONE);
         mSetLayout.setVisibility(View.GONE);
         mMarkLayout.setVisibility(View.GONE);
+        mSearchLayout.setVisibility(View.GONE);
+        hideSoftInput();
     }
 
     public void clearBookRack(View view) {
@@ -594,7 +672,36 @@ public class BookReaderActivity extends Activity {
 
     public void searchBook(View view) {
         exitOptMode(null);
-        //搜索功能以后加上
+        mSearchLayout.setVisibility(View.VISIBLE);
+    }
+
+    public void search(View view) {
+        hideSoftInput();
+        String word = mSearchWordView.getText().toString();
+        if (!TextUtils.isEmpty(word)) {
+            findViewById(R.id.br_search_loading).setVisibility(View.VISIBLE);
+            BookLoader.searchWord(mBook, word, getLineMap(), new BrTaskListener<List<BookSearchItem>>() {
+                @Override
+                public void onTaskDone(int code, String msg, List<BookSearchItem> data) {
+                    findViewById(R.id.br_search_loading).setVisibility(View.GONE);
+                    if (mIsSafe) {
+                        Toast.makeText(getApplicationContext(), String.format(getString(R.string.br_search_result_tips),
+                                (data == null ? 0 : data.size())), Toast.LENGTH_LONG).show();
+                        mSearchAdapter.setList(data);
+                        ((ListView) findViewById(R.id.br_search_list)).setSelection(0);
+                    }
+                }
+            });
+        }
+    }
+
+    private void hideSoftInput() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(mSearchWordView.getWindowToken(), 0);
+    }
+
+    public void clearSearchWord(View view) {
+        mSearchWordView.setText(null);
     }
 
     public void setCsU8(View view) {

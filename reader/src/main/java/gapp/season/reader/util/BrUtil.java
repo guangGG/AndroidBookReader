@@ -1,9 +1,15 @@
 package gapp.season.reader.util;
 
 import android.content.Context;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.WindowManager;
+
+import androidx.annotation.ColorInt;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -15,6 +21,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
 import java.security.MessageDigest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class BrUtil {
     public static final String KEY_BOOK_PATH = "key_bookfile_path";
@@ -282,5 +290,32 @@ public class BrUtil {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public static SpannableString highLightKeyWord(CharSequence content, String keyWord, @ColorInt int color) {
+        if (TextUtils.isEmpty(content)) {
+            return new SpannableString("");
+        }
+        // 判断是否有搜索关键词
+        if (TextUtils.isEmpty(keyWord)) {
+            return new SpannableString(content);
+        } else {
+            return toColorSpannableString(content, Pattern.compile(keyWord), color);
+        }
+    }
+
+    /**
+     * 将字符串转为SpannableString
+     */
+    public static SpannableString toColorSpannableString(CharSequence string, Pattern pattern, int color) {
+        if (pattern == null || TextUtils.isEmpty(pattern.pattern())) {
+            return new SpannableString(string);
+        }
+        Matcher m = pattern.matcher(string);
+        SpannableString ss = new SpannableString(string);
+        while (m.find()) {
+            ss.setSpan(new ForegroundColorSpan(color), m.start(), m.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        return ss;
     }
 }

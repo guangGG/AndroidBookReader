@@ -4,6 +4,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
+
 import com.google.gson.Gson;
 
 import java.io.File;
@@ -13,12 +15,14 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import androidx.annotation.NonNull;
 import gapp.season.reader.BookReader;
 import gapp.season.reader.model.Book;
 import gapp.season.reader.model.BookPageLine;
 import gapp.season.reader.model.BookSchedule;
+import gapp.season.reader.model.BookSearchItem;
 import gapp.season.reader.util.BrLog;
 import gapp.season.reader.util.BrTaskListener;
 import gapp.season.reader.util.BrUtil;
@@ -352,6 +356,7 @@ public class BookLoader {
             line.setLineIndex(0);
             line.setWordIndex(bookLine.getWordIndex());
             line.setWordLineIndex(0);
+            line.setWordLineLastIndex(0);
             line.setText(text.substring(0, 10) + "……");
             bpls.add(line);
             lineMap.put(bookLine.getIndex(), bpls);
@@ -363,6 +368,7 @@ public class BookLoader {
             line.setLineIndex(0);
             line.setWordIndex(bookLine.getWordIndex());
             line.setWordLineIndex(0);
+            line.setWordLineLastIndex(0);
             line.setText("");
             bpls.add(line);
             for (int i = 0; i < text.length(); i++) {
@@ -375,15 +381,73 @@ public class BookLoader {
                     line.setLineIndex(lineIndex);
                     line.setWordIndex(realI > 0 ? bookLine.getWordIndex() + realI : bookLine.getWordIndex());
                     line.setWordLineIndex(realI > 0 ? realI : 0); //使用修正值
+                    line.setWordLineLastIndex(realI > 0 ? realI : 0);
                     line.setText(String.valueOf(text.charAt(i)));
                     bpls.add(line);
                     lineFirstIndex = i;
                 } else {
+                    int realI = i - offset; //由于行首可能缩进，word序号需要做下修正
+                    line.setWordLineLastIndex(realI > 0 ? realI : 0);
                     line.setText(lt);
                 }
             }
             lineMap.put(bookLine.getIndex(), bpls);
         }
         return bpls;
+    }
+
+    public static void searchWord(final Book book, final String word, final Map<Integer, List<BookPageLine>> lineMap,
+                                  final BrTaskListener<List<BookSearchItem>> listener) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                //子线程处理搜索逻辑
+                final List<BookSearchItem> list = new ArrayList<>();
+                try {
+                    if (book != null && book.getLines() != null && !TextUtils.isEmpty(word)) {
+                        Pattern pattern = Pattern.compile(word);
+                        for (Book.BookLine bookLine : book.getLines()) {
+                            String text = bookLine.getText();
+                            if (!TextUtils.isEmpty(text)) {
+                                int length = text.length();
+                                Matcher matcher = pattern.matcher(text);
+                                while (matcher.find()) {
+                                    int sIndex = matcher.start();
+                                    int eIndex = matcher.end();
+                                    BookSearchItem item = new BookSearchItem();
+                                    item.setWord(word);
+                                    item.setProgress(1f * (bookLine.getWordIndex() + sIndex) / book.getWordNum());
+                                    int extLength = 12; //关键词前后各展示n个字
+                                    int ssi = sIndex > extLength ? (sIndex - extLength) : 0;
+                                    int sei = eIndex < (length - extLength) ? (eIndex + extLength) : length;
+                                    String sss = (ssi > 0) ? "…" : "";
+                                    String ses = (sei < length) ? "…" : "";
+                                    item.setText(sss + text.substring(ssi, sei) + ses);
+                                    List<BookPageLine> pLines = getBookLineInfo(lineMap, bookLine);
+                                    int paragraphLine = 0;
+                                    for (BookPageLine bpl : pLines) {
+                                        if (sIndex >= bpl.getWordLineIndex()) {
+                                            paragraphLine = bpl.getLineIndex();
+                                        } else {
+                                            break;
+                                        }
+                                    }
+                                    item.setSchedule(new BookSchedule(bookLine.getIndex(), paragraphLine));
+                                    list.add(item);
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (listener != null) listener.onTaskDone(0, null, list);
+                    }
+                });
+            }
+        }).start();
     }
 }
