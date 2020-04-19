@@ -25,3 +25,6 @@ BookReader.config(isdev, pageTheme, bookDir);
 //read book (bookFilePath can be null)
 BookReader.readBook(context, bookFilePath);
 ```
+
+## Preview
+<img src="assets/screenshot-reader-1.jpg" alt="screenshot" width="360" height="780" /> <img src="assets/screenshot-reader-2.jpg" alt="screenshot" width="360" height="780" /> <img src="assets/screenshot-reader-3.jpg" alt="screenshot" width="360" height="780" /> <img src="assets/screenshot-reader-4.jpg" alt="screenshot" width="360" height="780" />
